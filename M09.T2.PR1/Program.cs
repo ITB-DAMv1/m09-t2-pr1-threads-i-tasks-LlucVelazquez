@@ -10,12 +10,22 @@ namespace M09.T2.PR1
         public static readonly ConsoleColor[] COLORS = { ConsoleColor.Blue, ConsoleColor.Red, ConsoleColor.Green, 
             ConsoleColor.Yellow, ConsoleColor.Cyan };
         public static readonly object[] palets = new object[numComensal];
+        public static readonly ComensalData[] comensalsData = new ComensalData[numComensal];
+        public static object statsLock = new();
         public static bool endSimulation = false;
+        public class ComensalData
+        {
+            public int Id { get; set; }
+            public int TimesEat { get; set; }
+            public double MaxTimeHungry { get; set; }
+            public DateTime LastEat { get; set; } = DateTime.Now;
+        }
         public static void Main(string[] args)
         {
             for (int i = 0; i < numComensal; i++)
             {
                 palets[i] = new object();
+                comensalsData[i] = new ComensalData { Id = i };
             }
             List<Thread> threads = new();
             for (int i = 0; i < numComensal; i++)
@@ -26,11 +36,14 @@ namespace M09.T2.PR1
                 t.Start();
                 
             }
+            Thread monitor = new Thread(Monitor);
+            monitor.Start();
 
             Thread.Sleep(SimulationTime);
             endSimulation = true;
             
             foreach (var t in threads) t.Join();
+            monitor.Join();
         }
         public static void Comensal(int id)
         {
@@ -45,7 +58,10 @@ namespace M09.T2.PR1
                 int palet1 = id;
                 int palet2 = (id + 1) % numComensal;
                 if (palet2 < palet1) (palet1, palet2) = (palet2, palet1);
-
+                lock (statsLock)
+                {
+                    comensalsData[id].LastEat = DateTime.Now;
+                }
                 lock (palets[palet1])
                 {
                     Log($"agafat el palet {palet1}", color, id);
@@ -57,6 +73,26 @@ namespace M09.T2.PR1
                         Log("ha acabat de menjar", color, id);
                     }
                 }
+            }
+        }
+        public static void Monitor()
+        {
+            while (!endSimulation)
+            {
+                lock (statsLock)
+                {
+                    foreach(var c in comensalsData)
+                    {
+                        double timeHungry = (DateTime.Now - c.LastEat).TotalMilliseconds;
+                        if (timeHungry > maxTimeHungry)
+                        {
+                            Console.WriteLine($"Comensal {c.Id} ha estat massa temps sense menjar ({timeHungry}ms)");
+                            endSimulation = true;
+                            return;
+                        }
+                    }
+                }
+                Thread.Sleep(100);
             }
         }
         public static void Log(string action, ConsoleColor color, int id)
