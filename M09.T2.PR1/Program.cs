@@ -35,12 +35,11 @@ namespace M09.T2.PR1
         public static void Comensal(int id)
         {
             Random random = new();
-            //ConsoleColor color = COLORS[id];
+            ConsoleColor color = COLORS[id];
 
             while (!endSimulation)
             {
-                //Console.ForegroundColor = color;
-                Console.WriteLine($"Comensal {id} esta pensant.");
+                Log("esta pensant", color, id);
                 Thread.Sleep(random.Next(500,2000));
 
                 int palet1 = id;
@@ -49,16 +48,34 @@ namespace M09.T2.PR1
 
                 lock (palets[palet1])
                 {
-                    Console.WriteLine($"Comensal {id} Agafat el palet {palet1}.");
+                    Log($"agafat el palet {palet1}", color, id);
                     lock (palets[palet2])
                     {
-                        Console.WriteLine($"Comensal {id} Agafat el palet {palet2}.");
-                        Console.WriteLine($"Comensal {id} esta menjant.");
+                        Log($"agafat el palet {palet2}", color, id);
+                        Log("esta menjant", color, id);
                         Thread.Sleep(random.Next(500, 1000));
-                        Console.WriteLine($"Comensal {id} ha acabat de menjar.");
+                        Log("ha acabat de menjar", color, id);
                     }
                 }
             }
+        }
+        public static void Log(string action, ConsoleColor color, int id)
+        {
+            Console.ResetColor();
+            Console.Write($"[{DateTime.Now:HH:mm:ss}] ");
+
+            Console.BackgroundColor = action switch
+            {
+                "esta pensant" => ConsoleColor.White,
+                "esta menjant" => ConsoleColor.Black,
+                "agafat el palet" => ConsoleColor.Gray,
+                "ha acabat de menjar" => ConsoleColor.Magenta,
+                _ => ConsoleColor.White
+            };
+            Console.ForegroundColor = color;
+            Console.Write($"Comensal {id} {action}");
+            Console.ResetColor();
+            Console.WriteLine();
         }
     }
 }
