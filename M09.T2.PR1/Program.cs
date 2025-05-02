@@ -44,6 +44,9 @@ namespace M09.T2.PR1
             
             foreach (var t in threads) t.Join();
             monitor.Join();
+
+            GenerateCSV();
+            Console.WriteLine("Simulació acabada. Resultats guardats a statistics.csv");
         }
         public static void Comensal(int id)
         {
@@ -71,6 +74,17 @@ namespace M09.T2.PR1
                         Log("esta menjant", color, id);
                         Thread.Sleep(random.Next(500, 1000));
                         Log("ha acabat de menjar", color, id);
+
+                        lock (statsLock)
+                        {
+                            comensalsData[id].TimesEat++;
+                            double timeHungry = (DateTime.Now - comensalsData[id].LastEat).TotalMilliseconds;
+                            if (timeHungry > comensalsData[id].MaxTimeHungry)
+                            {
+                                comensalsData[id].MaxTimeHungry = timeHungry;
+                            }
+                            comensalsData[id].LastEat = DateTime.Now;
+                        }
                     }
                 }
             }
@@ -112,6 +126,15 @@ namespace M09.T2.PR1
             Console.Write($"Comensal {id} {action}");
             Console.ResetColor();
             Console.WriteLine();
+        }
+        public static void GenerateCSV()
+        {
+            using StreamWriter writer = new(@"..\..\..\statistics.csv");
+            writer.WriteLine("Comensal,TimesEat,MaxTimeHungry");
+            foreach (var c in comensalsData)
+            {
+                writer.WriteLine($"{c.Id},{c.TimesEat},{c.MaxTimeHungry}");
+            }
         }
     }
 }
