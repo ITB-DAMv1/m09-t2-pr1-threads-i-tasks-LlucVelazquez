@@ -22,7 +22,8 @@ class AsteroidsGame
         var inputTask = Task.Run(() => ReadInput());
         var updateTask = Task.Run(() => UpdatePositions());
         var renderTask = Task.Run(() => RenderLoop());
-        
+        var webEvalTask = Task.Run(() => SimulateWebEvaluation());
+
 
         await Task.WhenAny(updateTask);
 
@@ -120,5 +121,12 @@ class AsteroidsGame
             }
             await Task.Delay(50);
         }
+    }
+    static async Task SimulateWebEvaluation()
+    {
+        var rand = new Random();
+        int duration = rand.Next(30000, 60000); // 30s a 1min
+        await Task.Delay(duration);
+        // Aquesta tasca simula una avaluació paral·lela que no afecta el joc
     }
 }
