@@ -47,7 +47,7 @@ class AsteroidsGame
             }
         }
     }
-
+     
     static async Task UpdatePositions()
     {
         var rand = new Random();
